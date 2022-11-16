@@ -5,7 +5,7 @@
 ```
 wget -i -c http://dev.mysql.com/get/mysql57-community-release-el7-10.noarch.rpm
 yum -y install mysql57-community-release-el7-10.noarch.rpm
-yum -y install mysql-community-server
+yum -y install mysql-community-server --nogpgcheck
 ```
 
 **二**、启动并查看状态MySQL：
@@ -146,6 +146,7 @@ services:
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092                        # 配置kafka的监听端口
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181                
       KAFKA_CREATE_TOPICS: "hello_world"
+      KAFKA_HEAP_OPTS: -Xmx1G -Xms256M
     ports:                              # 映射端口
       - "9092:9092"
     depends_on:                         # 解决容器依赖启动先后问题
@@ -186,10 +187,16 @@ docker ps
 docker exec -it kafka sh
 ```
 
-创建一个topic(这里我的**topicName**就叫austinBusiness，你们可以改成自己的)
+创建两个topic(这里我的**topicName**就叫austinBusiness和austinLog，你们可以改成自己的)
 
 ```
-$KAFKA_HOME/bin/kafka-topics.sh --create --topic austinBusiness --partitions 1 --zookeeper zookeeper:2181 --replication-factor 1 
+
+$KAFKA_HOME/bin/kafka-topics.sh --create --topic austinBusiness --partitions 1 --zookeeper zookeeper:2181 --replication-factor 1
+
+$KAFKA_HOME/bin/kafka-topics.sh --create --topic austinLog --partitions 1 --zookeeper zookeeper:2181 --replication-factor 1
+
+$KAFKA_HOME/bin/kafka-topics.sh --create --topic austinRecall --partitions 1 --zookeeper zookeeper:2181 --replication-factor 1
+ 
 ```
 
 查看刚创建的topic信息：
@@ -277,7 +284,14 @@ auth austin
 
 PS：我的namespace是`boss.austin`
 
-![](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/2101f27fee044a2d86e8d6031c808d95~tplv-k3u1fbpfcp-zoom-1.image)
+![](https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/4c4636a5620a454b931aea8b248e2890~tplv-k3u1fbpfcp-watermark.image?)
+
+apollo配置样例可看example/apollo.properties文件的内容
+
+`dynamic-tp-apollo-dtp`它是一个apollo的namespace，存放着动态线程池的配置
+
+动态线程池样例配置可看 dynamic-tp-apollo-dtp.yml 文件的内容
+
 
 ## 06、安装PROMETHEUS和GRAFANA(可选)
 
@@ -298,7 +312,6 @@ services:
         restart: always
         volumes:
             - ./prometheus.yml:/etc/prometheus/prometheus.yml
-#            - ./node_down.yml:/usr/local/etc/node_down.yml:rw
         ports:
             - "9090:9090"
         networks:
@@ -309,8 +322,6 @@ services:
         container_name: alertmanager
         hostname: alertmanager
         restart: always
-#        volumes:
-#            - ./alertmanager.yml:/usr/local/etc/alertmanager.yml
         ports:
             - "9093:9093"
         networks:
@@ -438,6 +449,7 @@ services:
         - transport.host=localhost
         - network.host=0.0.0.0
         - "ES_JAVA_OPTS=-Dlog4j2.formatMsgNoLookups=true -Xms512m -Xmx512m"
+        - GRAYLOG_ROOT_TIMEZONE=Asia/Shanghai
       ulimits:
         memlock:
           soft: -1
@@ -454,6 +466,7 @@ services:
         - GRAYLOG_PASSWORD_SECRET=somepasswordpepper
         - GRAYLOG_ROOT_PASSWORD_SHA2=8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918
         - GRAYLOG_HTTP_EXTERNAL_URI=http://ip:9009/ # 这里注意要改ip
+        - GRAYLOG_ROOT_TIMEZONE=Asia/Shanghai
       entrypoint: /usr/bin/tini -- wait-for-it elasticsearch:9200 --  /docker-entrypoint.sh
       networks:
         - graylog

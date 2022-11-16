@@ -40,7 +40,7 @@ public abstract class AbstractLazyPending<T> {
     /**
      * 是否终止线程
      */
-    private Boolean stop = false;
+    private volatile Boolean stop = false;
 
     /**
      * 单线程消费 阻塞队列的数据
@@ -68,6 +68,7 @@ public abstract class AbstractLazyPending<T> {
 
                     // 判断是否停止当前线程
                     if (stop && CollUtil.isEmpty(tasks)) {
+                        executorService.shutdown();
                         break;
                     }
                 } catch (Exception e) {
@@ -75,7 +76,7 @@ public abstract class AbstractLazyPending<T> {
                 }
             }
         });
-        executorService.shutdown();
+
     }
 
     /**

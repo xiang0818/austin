@@ -21,6 +21,8 @@ public enum IdType {
     EMAIL(50, "email"),
     ENTERPRISE_USER_ID(60, "enterprise_user_id"),
     DING_DING_USER_ID(70, "ding_ding_user_id"),
+    CID(80, "cid"),
+    FEI_SHU_USER_ID(90, "fei_shu_user_id"),
     ;
 
     private Integer code;

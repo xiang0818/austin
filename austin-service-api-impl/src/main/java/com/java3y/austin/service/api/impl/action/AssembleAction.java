@@ -2,8 +2,10 @@ package com.java3y.austin.service.api.impl.action;
 
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.google.common.base.Throwables;
 import com.java3y.austin.common.constant.AustinConstant;
 import com.java3y.austin.common.domain.TaskInfo;
@@ -12,6 +14,7 @@ import com.java3y.austin.common.enums.ChannelType;
 import com.java3y.austin.common.enums.RespStatusEnum;
 import com.java3y.austin.common.vo.BasicResultVO;
 import com.java3y.austin.service.api.domain.MessageParam;
+import com.java3y.austin.service.api.enums.BusinessCode;
 import com.java3y.austin.service.api.impl.domain.SendTaskModel;
 import com.java3y.austin.support.dao.MessageTemplateDao;
 import com.java3y.austin.support.domain.MessageTemplate;
@@ -21,6 +24,7 @@ import com.java3y.austin.support.utils.ContentHolderUtil;
 import com.java3y.austin.support.utils.TaskInfoUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -31,14 +35,15 @@ import java.util.*;
  * @description 拼装参数
  */
 @Slf4j
-public class AssembleAction implements BusinessProcess {
+@Service
+public class AssembleAction implements BusinessProcess<SendTaskModel> {
 
     @Autowired
     private MessageTemplateDao messageTemplateDao;
 
     @Override
-    public void process(ProcessContext context) {
-        SendTaskModel sendTaskModel = (SendTaskModel) context.getProcessModel();
+    public void process(ProcessContext<SendTaskModel> context) {
+        SendTaskModel sendTaskModel = context.getProcessModel();
         Long messageTemplateId = sendTaskModel.getMessageTemplateId();
 
         try {
@@ -47,9 +52,12 @@ public class AssembleAction implements BusinessProcess {
                 context.setNeedBreak(true).setResponse(BasicResultVO.fail(RespStatusEnum.TEMPLATE_NOT_FOUND));
                 return;
             }
-
-            List<TaskInfo> taskInfos = assembleTaskInfo(sendTaskModel, messageTemplate.get());
-            sendTaskModel.setTaskInfo(taskInfos);
+            if (BusinessCode.COMMON_SEND.getCode().equals(context.getCode())) {
+                List<TaskInfo> taskInfos = assembleTaskInfo(sendTaskModel, messageTemplate.get());
+                sendTaskModel.setTaskInfo(taskInfos);
+            } else if (BusinessCode.RECALL.getCode().equals(context.getCode())) {
+                sendTaskModel.setMessageTemplate(messageTemplate.get());
+            }
         } catch (Exception e) {
             context.setNeedBreak(true).setResponse(BasicResultVO.fail(RespStatusEnum.SERVICE_ERROR));
             log.error("assemble task fail! templateId:{}, e:{}", messageTemplateId, Throwables.getStackTraceAsString(e));
@@ -112,7 +120,8 @@ public class AssembleAction implements BusinessProcess {
 
             if (StrUtil.isNotBlank(originValue)) {
                 String resultValue = ContentHolderUtil.replacePlaceHolder(originValue, variables);
-                ReflectUtil.setFieldValue(contentModel, field, resultValue);
+                Object resultObj = JSONUtil.isJsonObj(resultValue) ? JSONUtil.toBean(resultValue, field.getType()) : resultValue;
+                ReflectUtil.setFieldValue(contentModel, field, resultObj);
             }
         }
 
