@@ -2,7 +2,7 @@ package com.java3y.austin.support.utils;
 
 import cn.hutool.core.collection.CollUtil;
 import com.google.common.base.Throwables;
-import com.java3y.austin.common.constant.AustinConstant;
+import com.java3y.austin.common.constant.CommonConstant;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisCallback;
@@ -10,9 +10,8 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 /**
  * @author 3y
@@ -37,7 +36,10 @@ public class RedisUtils {
             List<String> value = redisTemplate.opsForValue().multiGet(keys);
             if (CollUtil.isNotEmpty(value)) {
                 for (int i = 0; i < keys.size(); i++) {
-                    result.put(keys.get(i), value.get(i));
+                    if (Objects.nonNull(value.get(i))) {
+                        result.put(keys.get(i), value.get(i));
+                    }
+
                 }
             }
         } catch (Exception e) {
@@ -53,12 +55,11 @@ public class RedisUtils {
      */
     public Map<Object, Object> hGetAll(String key) {
         try {
-            Map<Object, Object> entries = redisTemplate.opsForHash().entries(key);
-            return entries;
+            return redisTemplate.opsForHash().entries(key);
         } catch (Exception e) {
             log.error("RedisUtils#hGetAll fail! e:{}", Throwables.getStackTraceAsString(e));
         }
-        return null;
+        return new HashMap<>(2);
     }
 
     /**
@@ -72,7 +73,7 @@ public class RedisUtils {
         } catch (Exception e) {
             log.error("RedisUtils#lRange fail! e:{}", Throwables.getStackTraceAsString(e));
         }
-        return null;
+        return new ArrayList<>();
     }
 
     /**
@@ -82,8 +83,8 @@ public class RedisUtils {
         try {
             redisTemplate.executePipelined((RedisCallback<String>) connection -> {
                 for (Map.Entry<String, String> entry : keyValues.entrySet()) {
-                    connection.setEx(entry.getKey().getBytes(), seconds,
-                            entry.getValue().getBytes());
+                    connection.setEx(entry.getKey().getBytes(StandardCharsets.UTF_8), seconds,
+                            entry.getValue().getBytes(StandardCharsets.UTF_8));
                 }
                 return null;
             });
@@ -99,12 +100,12 @@ public class RedisUtils {
     public void lPush(String key, String value, Long seconds) {
         try {
             redisTemplate.executePipelined((RedisCallback<String>) connection -> {
-                connection.lPush(key.getBytes(), value.getBytes());
-                connection.expire(key.getBytes(), seconds);
+                connection.lPush(key.getBytes(StandardCharsets.UTF_8), value.getBytes(StandardCharsets.UTF_8));
+                connection.expire(key.getBytes(StandardCharsets.UTF_8), seconds);
                 return null;
             });
         } catch (Exception e) {
-            log.error("RedisUtils#pipelineSetEx fail! e:{}", Throwables.getStackTraceAsString(e));
+            log.error("RedisUtils#lPush fail! e:{}", Throwables.getStackTraceAsString(e));
         }
     }
 
@@ -115,7 +116,7 @@ public class RedisUtils {
         try {
             return redisTemplate.opsForList().size(key);
         } catch (Exception e) {
-            log.error("RedisUtils#pipelineSetEx fail! e:{}", Throwables.getStackTraceAsString(e));
+            log.error("RedisUtils#lLen fail! e:{}", Throwables.getStackTraceAsString(e));
         }
         return 0L;
     }
@@ -127,7 +128,7 @@ public class RedisUtils {
         try {
             return redisTemplate.opsForList().leftPop(key);
         } catch (Exception e) {
-            log.error("RedisUtils#pipelineSetEx fail! e:{}", Throwables.getStackTraceAsString(e));
+            log.error("RedisUtils#lPop fail! e:{}", Throwables.getStackTraceAsString(e));
         }
         return "";
     }
@@ -142,8 +143,11 @@ public class RedisUtils {
         try {
             redisTemplate.executePipelined((RedisCallback<String>) connection -> {
                 for (Map.Entry<String, String> entry : keyValues.entrySet()) {
-                    connection.hIncrBy(entry.getKey().getBytes(), entry.getValue().getBytes(), delta);
-                    connection.expire(entry.getKey().getBytes(), seconds);
+                    connection.hIncrBy(entry.getKey().getBytes(StandardCharsets.UTF_8),
+                            entry.getValue().getBytes(StandardCharsets.UTF_8),
+                            delta);
+                    connection.expire(entry.getKey().getBytes(StandardCharsets.UTF_8),
+                            seconds);
                 }
                 return null;
             });
@@ -167,15 +171,17 @@ public class RedisUtils {
      */
     public Boolean execLimitLua(RedisScript<Long> redisScript, List<String> keys, String... args) {
 
+        // 可变参数转数组
+        String[] argsArray = args != null ? args : new String[0];
         try {
-            Long execute = redisTemplate.execute(redisScript, keys, args);
-
-            return AustinConstant.TRUE.equals(execute.intValue());
+            Long execute = redisTemplate.execute(redisScript, keys, (Object[]) argsArray);
+            if (Objects.isNull(execute)) {
+                return false;
+            }
+            return CommonConstant.TRUE.equals(execute.intValue());
         } catch (Exception e) {
-
             log.error("redis execLimitLua fail! e:{}", Throwables.getStackTraceAsString(e));
         }
-
         return false;
     }
 

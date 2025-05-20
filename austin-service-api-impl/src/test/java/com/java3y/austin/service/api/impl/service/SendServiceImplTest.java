@@ -1,17 +1,8 @@
 package com.java3y.austin.service.api.impl.service;
 
-import com.java3y.austin.common.enums.RespStatusEnum;
-import com.java3y.austin.common.vo.BasicResultVO;
-import com.java3y.austin.service.api.domain.BatchSendRequest;
-import com.java3y.austin.service.api.domain.MessageParam;
-import com.java3y.austin.service.api.domain.SendRequest;
-import com.java3y.austin.service.api.domain.SendResponse;
-import com.java3y.austin.service.api.enums.BusinessCode;
-import com.java3y.austin.service.api.impl.domain.SendTaskModel;
-import com.java3y.austin.support.pipeline.BusinessProcess;
-import com.java3y.austin.support.pipeline.ProcessContext;
-import com.java3y.austin.support.pipeline.ProcessController;
-import com.java3y.austin.support.pipeline.ProcessTemplate;
+import com.java3y.austin.common.pipeline.BusinessProcess;
+import com.java3y.austin.common.pipeline.ProcessController;
+import com.java3y.austin.common.pipeline.ProcessTemplate;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,13 +10,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class SendServiceImplTest {

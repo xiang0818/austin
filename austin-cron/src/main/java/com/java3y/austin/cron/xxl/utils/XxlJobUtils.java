@@ -1,8 +1,8 @@
 package com.java3y.austin.cron.xxl.utils;
 
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.StrUtil;
-import com.java3y.austin.common.constant.AustinConstant;
+import cn.hutool.core.text.CharSequenceUtil;
+import com.java3y.austin.common.constant.CommonConstant;
 import com.java3y.austin.common.enums.RespStatusEnum;
 import com.java3y.austin.common.vo.BasicResultVO;
 import com.java3y.austin.cron.xxl.constants.XxlJobConstant;
@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * xxlJob工具类
@@ -44,8 +45,8 @@ public class XxlJobUtils {
 
         String scheduleConf = messageTemplate.getExpectPushTime();
         // 如果没有指定cron表达式，说明立即执行(给到xxl-job延迟5秒的cron表达式)
-        if (messageTemplate.getExpectPushTime().equals(String.valueOf(AustinConstant.FALSE))) {
-            scheduleConf = DateUtil.format(DateUtil.offsetSecond(new Date(), XxlJobConstant.DELAY_TIME), AustinConstant.CRON_FORMAT);
+        if (messageTemplate.getExpectPushTime().equals(String.valueOf(CommonConstant.FALSE))) {
+            scheduleConf = DateUtil.format(DateUtil.offsetSecond(new Date(), XxlJobConstant.DELAY_TIME), CommonConstant.CRON_FORMAT);
         }
 
         XxlJobInfo xxlJobInfo = XxlJobInfo.builder()
@@ -61,13 +62,13 @@ public class XxlJobUtils {
                 .executorTimeout(XxlJobConstant.TIME_OUT)
                 .executorFailRetryCount(XxlJobConstant.RETRY_COUNT)
                 .glueType(GlueTypeEnum.BEAN.name())
-                .triggerStatus(AustinConstant.FALSE)
-                .glueRemark(StrUtil.EMPTY)
-                .glueSource(StrUtil.EMPTY)
-                .alarmEmail(StrUtil.EMPTY)
-                .childJobId(StrUtil.EMPTY).build();
+                .triggerStatus(CommonConstant.FALSE)
+                .glueRemark(CharSequenceUtil.EMPTY)
+                .glueSource(CharSequenceUtil.EMPTY)
+                .alarmEmail(CharSequenceUtil.EMPTY)
+                .childJobId(CharSequenceUtil.EMPTY).build();
 
-        if (messageTemplate.getCronTaskId() != null) {
+        if (Objects.nonNull(messageTemplate.getCronTaskId())) {
             xxlJobInfo.setId(messageTemplate.getCronTaskId());
         }
         return xxlJobInfo;
@@ -75,17 +76,18 @@ public class XxlJobUtils {
 
     /**
      * 根据就配置文件的内容获取jobGroupId，没有则创建
+     *
      * @return
      */
     private Integer queryJobGroupId() {
-        BasicResultVO basicResultVO = cronTaskService.getGroupId(appName, jobHandlerName);
-        if (basicResultVO.getData() == null) {
-            XxlJobGroup xxlJobGroup = XxlJobGroup.builder().appname(appName).title(jobHandlerName).addressType(AustinConstant.FALSE).build();
+        BasicResultVO<Integer> basicResultVO = cronTaskService.getGroupId(appName, jobHandlerName);
+        if (Objects.isNull(basicResultVO.getData())) {
+            XxlJobGroup xxlJobGroup = XxlJobGroup.builder().appname(appName).title(jobHandlerName).addressType(CommonConstant.FALSE).build();
             if (RespStatusEnum.SUCCESS.getCode().equals(cronTaskService.createGroup(xxlJobGroup).getStatus())) {
-                return (int) cronTaskService.getGroupId(appName, jobHandlerName).getData();
+                return (Integer) cronTaskService.getGroupId(appName, jobHandlerName).getData();
             }
         }
-        return (Integer) basicResultVO.getData();
+        return basicResultVO.getData();
     }
 
 }

@@ -13,21 +13,25 @@ import lombok.ToString;
 @Getter
 @ToString
 @AllArgsConstructor
-public enum FileType {
-    IMAGE("10", "image"),
-    VOICE("20", "voice"),
-    COMMON_FILE("30", "file"),
-    VIDEO("40", "video"),
+public enum FileType implements PowerfulEnum {
+    /**
+     * 图片
+     */
+    IMAGE(10, "image"),
+    /**
+     * 语音
+     */
+    VOICE(20, "voice"),
+    /**
+     * 普通文件
+     */
+    COMMON_FILE(30, "file"),
+    /**
+     * 视频
+     */
+    VIDEO(40, "video"),
     ;
-    private String code;
-    private String dingDingName;
+    private final Integer code;
+    private final String description;
 
-    public static String dingDingNameByCode(String code) {
-        for (FileType fileType : FileType.values()) {
-            if (fileType.getCode().equals(code)) {
-                return fileType.getDingDingName();
-            }
-        }
-        return null;
-    }
 }

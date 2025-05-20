@@ -1,8 +1,8 @@
 package com.java3y.austin.support.utils;
 
-import cn.hutool.core.util.StrUtil;
-import com.alibaba.nacos.api.NacosFactory;
-import com.alibaba.nacos.api.PropertyKeyConst;
+import cn.hutool.core.text.CharSequenceUtil;
+import com.alibaba.nacos.api.annotation.NacosInjected;
+import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.exception.NacosException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -22,16 +22,13 @@ import java.util.Properties;
 @Slf4j
 @Component
 public class NacosUtils {
-    @Value("${austin.nacos.server}")
-    private String nacosServer;
-    @Value("${austin.nacos.group}")
-    private String nacosGroup;
-    @Value("${austin.nacos.dataId}")
-    private String nacosDataId;
-    @Value("${austin.nacos.namespace}")
-    private String nacosNamespace;
-    private final Properties request = new Properties();
     private final Properties properties = new Properties();
+    @NacosInjected
+    private ConfigService configService;
+    @Value("${nacos.group}")
+    private String nacosGroup;
+    @Value("${nacos.data-id}")
+    private String nacosDataId;
 
     public String getProperty(String key, String defaultValue) {
         try {
@@ -43,16 +40,13 @@ public class NacosUtils {
             log.error("Nacos error:{}", ExceptionUtils.getStackTrace(e));
         }
         String property = properties.getProperty(key);
-        return StrUtil.isBlank(property) ? defaultValue : property;
+        return CharSequenceUtil.isBlank(property) ? defaultValue : property;
     }
 
     private String getContext() {
         String context = null;
         try {
-            request.put(PropertyKeyConst.SERVER_ADDR, nacosServer);
-            request.put(PropertyKeyConst.NAMESPACE, nacosNamespace);
-            context = NacosFactory.createConfigService(request)
-                    .getConfig(nacosDataId, nacosGroup, 5000);
+            context = configService.getConfig(nacosDataId, nacosGroup, 5000);
         } catch (NacosException e) {
             log.error("Nacos error:{}", ExceptionUtils.getStackTrace(e));
         }

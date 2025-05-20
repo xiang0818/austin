@@ -1,9 +1,10 @@
 package com.java3y.austin.handler.receiver.rocketmq;
 
 import com.alibaba.fastjson.JSON;
+import com.java3y.austin.common.domain.RecallTaskInfo;
+import com.java3y.austin.handler.receiver.MessageReceiver;
 import com.java3y.austin.handler.receiver.service.ConsumeService;
 import com.java3y.austin.support.constans.MessageQueuePipeline;
-import com.java3y.austin.support.domain.MessageTemplate;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.annotation.SelectorType;
@@ -25,7 +26,7 @@ import org.springframework.stereotype.Component;
         selectorType = SelectorType.TAG,
         selectorExpression = "${austin.business.tagId.value}"
 )
-public class RocketMqRecallReceiver implements RocketMQListener<String> {
+public class RocketMqRecallReceiver implements RocketMQListener<String>, MessageReceiver {
 
     @Autowired
     private ConsumeService consumeService;
@@ -35,7 +36,7 @@ public class RocketMqRecallReceiver implements RocketMQListener<String> {
         if (StringUtils.isBlank(message)) {
             return;
         }
-        MessageTemplate messageTemplate = JSON.parseObject(message, MessageTemplate.class);
-        consumeService.consume2recall(messageTemplate);
+        RecallTaskInfo recallTaskInfo = JSON.parseObject(message, RecallTaskInfo.class);
+        consumeService.consume2recall(recallTaskInfo);
     }
 }

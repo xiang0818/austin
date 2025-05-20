@@ -3,16 +3,13 @@ package com.java3y.austin.handler.flowcontrol;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.util.concurrent.RateLimiter;
-import com.java3y.austin.common.constant.AustinConstant;
+import com.java3y.austin.common.constant.CommonConstant;
 import com.java3y.austin.common.domain.TaskInfo;
 import com.java3y.austin.common.enums.ChannelType;
+import com.java3y.austin.common.enums.EnumUtil;
 import com.java3y.austin.handler.enums.RateLimitStrategy;
 import com.java3y.austin.handler.flowcontrol.annotations.LocalRateLimit;
 import com.java3y.austin.support.service.ConfigService;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
@@ -20,6 +17,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
+
+import javax.annotation.PostConstruct;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author 3y
@@ -49,7 +51,7 @@ public class FlowControlFactory implements ApplicationContextAware {
         Double rateInitValue = flowControlParam.getRateInitValue();
         // 对比 初始限流值 与 配置限流值，以 配置中心的限流值为准
         Double rateLimitConfig = getRateLimitConfig(taskInfo.getSendChannel());
-        if (rateLimitConfig != null && !rateInitValue.equals(rateLimitConfig)) {
+        if (Objects.nonNull(rateLimitConfig) && !rateInitValue.equals(rateLimitConfig)) {
             rateLimiter = RateLimiter.create(rateLimitConfig);
             flowControlParam.setRateInitValue(rateLimitConfig);
             flowControlParam.setRateLimiter(rateLimiter);
@@ -62,7 +64,7 @@ public class FlowControlFactory implements ApplicationContextAware {
         double costTime = flowControlService.flowControl(taskInfo, flowControlParam);
         if (costTime > 0) {
             log.info("consumer {} flow control time {}",
-                ChannelType.getEnumByCode(taskInfo.getSendChannel()).getDescription(), costTime);
+                    EnumUtil.getEnumByCode(taskInfo.getSendChannel(), ChannelType.class).getDescription(), costTime);
         }
     }
 
@@ -76,9 +78,9 @@ public class FlowControlFactory implements ApplicationContextAware {
      * @param channelCode
      */
     private Double getRateLimitConfig(Integer channelCode) {
-        String flowControlConfig = config.getProperty(FLOW_CONTROL_KEY, AustinConstant.APOLLO_DEFAULT_VALUE_JSON_OBJECT);
+        String flowControlConfig = config.getProperty(FLOW_CONTROL_KEY, CommonConstant.EMPTY_JSON_OBJECT);
         JSONObject jsonObject = JSON.parseObject(flowControlConfig);
-        if (jsonObject.getDouble(FLOW_CONTROL_PREFIX + channelCode) == null) {
+        if (Objects.isNull(jsonObject.getDouble(FLOW_CONTROL_PREFIX + channelCode))) {
             return null;
         }
         return jsonObject.getDouble(FLOW_CONTROL_PREFIX + channelCode);

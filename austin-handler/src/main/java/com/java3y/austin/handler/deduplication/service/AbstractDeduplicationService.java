@@ -11,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
-import java.util.*;
+import java.util.Set;
 
 /**
  * @author 3y
@@ -27,15 +27,13 @@ public abstract class AbstractDeduplicationService implements DeduplicationServi
 
     @Autowired
     private DeduplicationHolder deduplicationHolder;
+    @Autowired
+    private LogUtils logUtils;
 
     @PostConstruct
     private void init() {
         deduplicationHolder.putService(deduplicationType, this);
     }
-
-    @Autowired
-    private LogUtils logUtils;
-
 
     @Override
     public void deduplication(DeduplicationParam param) {
@@ -46,7 +44,7 @@ public abstract class AbstractDeduplicationService implements DeduplicationServi
         // 剔除符合去重条件的用户
         if (CollUtil.isNotEmpty(filterReceiver)) {
             taskInfo.getReceiver().removeAll(filterReceiver);
-            logUtils.print(AnchorInfo.builder().businessId(taskInfo.getBusinessId()).ids(filterReceiver).state(param.getAnchorState().getCode()).build());
+            logUtils.print(AnchorInfo.builder().bizId(taskInfo.getBizId()).messageId(taskInfo.getMessageId()).businessId(taskInfo.getBusinessId()).ids(filterReceiver).state(param.getAnchorState().getCode()).build());
         }
     }
 

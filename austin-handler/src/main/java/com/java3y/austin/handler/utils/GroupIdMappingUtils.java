@@ -3,6 +3,7 @@ package com.java3y.austin.handler.utils;
 
 import com.java3y.austin.common.domain.TaskInfo;
 import com.java3y.austin.common.enums.ChannelType;
+import com.java3y.austin.common.enums.EnumUtil;
 import com.java3y.austin.common.enums.MessageType;
 
 import java.util.ArrayList;
@@ -14,6 +15,8 @@ import java.util.List;
  * @author 3y
  */
 public class GroupIdMappingUtils {
+    private GroupIdMappingUtils() {
+    }
 
     /**
      * 获取所有的groupIds
@@ -32,12 +35,13 @@ public class GroupIdMappingUtils {
 
     /**
      * 根据TaskInfo获取当前消息的groupId
+     *
      * @param taskInfo
      * @return
      */
     public static String getGroupIdByTaskInfo(TaskInfo taskInfo) {
-        String channelCodeEn = ChannelType.getEnumByCode(taskInfo.getSendChannel()).getCodeEn();
-        String msgCodeEn = MessageType.getEnumByCode(taskInfo.getMsgType()).getCodeEn();
+        String channelCodeEn = EnumUtil.getEnumByCode(taskInfo.getSendChannel(), ChannelType.class).getCodeEn();
+        String msgCodeEn = EnumUtil.getEnumByCode(taskInfo.getMsgType(), MessageType.class).getCodeEn();
         return channelCodeEn + "." + msgCodeEn;
     }
 }

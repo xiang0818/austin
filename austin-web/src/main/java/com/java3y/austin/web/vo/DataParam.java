@@ -17,6 +17,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class DataParam {
 
+
+    /**
+     * 查看消息Id的链路信息
+     */
+    private String messageId;
+
     /**
      * 查看用户的链路信息
      */
@@ -35,8 +41,6 @@ public class DataParam {
      * 日期时间(检索短信的条件使用)
      */
     private Long dateTime;
-
-
 
 
 }

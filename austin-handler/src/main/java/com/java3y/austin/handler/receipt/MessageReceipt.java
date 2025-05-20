@@ -1,31 +1,20 @@
 package com.java3y.austin.handler.receipt;
 
 
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.date.DatePattern;
-import cn.hutool.core.date.DateUtil;
-import com.alibaba.fastjson.JSON;
 import com.google.common.base.Throwables;
-import com.java3y.austin.common.constant.SendAccountConstant;
-import com.java3y.austin.common.dto.account.TencentSmsAccount;
-import com.java3y.austin.common.enums.SmsStatus;
+import com.java3y.austin.handler.receipt.stater.ReceiptMessageStater;
 import com.java3y.austin.support.config.SupportThreadPoolConfig;
-import com.java3y.austin.support.domain.SmsRecord;
-import com.tencentcloudapi.sms.v20210111.SmsClient;
-import com.tencentcloudapi.sms.v20210111.models.PullSmsSendStatus;
-import com.tencentcloudapi.sms.v20210111.models.PullSmsSendStatusRequest;
-import com.tencentcloudapi.sms.v20210111.models.PullSmsSendStatusResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.Date;
+import javax.annotation.PreDestroy;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
- * 拉取短信回执信息
+ * 拉取回执信息 入口
  *
  * @author 3y
  */
@@ -34,24 +23,40 @@ import java.util.List;
 public class MessageReceipt {
 
     @Autowired
-    private TencentSmsReceipt tencentSmsReceipt;
+    private List<ReceiptMessageStater> receiptMessageStaterList;
 
-    @Autowired
-    private YunPianSmsReceipt yunPianSmsReceipt;
+    /**
+     * 是否终止线程
+     */
+    private volatile boolean stop = false;
 
     @PostConstruct
     private void init() {
         SupportThreadPoolConfig.getPendingSingleThreadPool().execute(() -> {
-            while (true) {
-
-                // TODO 回执这里自行打开(免得报错)
-//                tencentSmsReceipt.pull();
-//                yunPianSmsReceipt.pull();
+            while (!stop) {
                 try {
-                    Thread.sleep(200);
-                } catch (InterruptedException e) {
+                    for (ReceiptMessageStater receiptMessageStater : receiptMessageStaterList) {
+                        //receiptMessageStater.start();
+                    }
+                    TimeUnit.SECONDS.sleep(2);
+                } catch (InterruptedException ex) {
+                    log.error("MessageReceipt#init interrupted: {}", ex.getMessage());
+                    Thread.currentThread().interrupt();
+                    break;
+                } catch (Exception e) {
+                    log.error("MessageReceipt#init fail:{}", Throwables.getStackTraceAsString(e));
                 }
             }
         });
     }
+
+    /**
+     * 销毁调用
+     */
+    @PreDestroy
+    public void onDestroy() {
+        this.stop = true;
+        SupportThreadPoolConfig.getPendingSingleThreadPool().shutdown();
+    }
+
 }

@@ -1,6 +1,6 @@
 package com.java3y.austin.handler.deduplication.service;
 
-import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.text.StrPool;
 import com.java3y.austin.common.domain.TaskInfo;
 import com.java3y.austin.common.enums.DeduplicationType;
 import com.java3y.austin.handler.deduplication.limit.LimitService;
@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 public class FrequencyDeduplicationService extends AbstractDeduplicationService {
 
 
+    private static final String PREFIX = "FRE";
+
     @Autowired
     public FrequencyDeduplicationService(@Qualifier("SimpleLimitService") LimitService limitService) {
 
@@ -26,12 +28,10 @@ public class FrequencyDeduplicationService extends AbstractDeduplicationService 
 
     }
 
-    private static final String PREFIX = "FRE";
-
     /**
      * 业务规则去重 构建key
      * <p>
-     * key ： receiver + templateId + sendChannel
+     * key ： receiver + sendChannel
      * <p>
      * 一天内一个用户只能收到某个渠道的消息 N 次
      *
@@ -41,9 +41,8 @@ public class FrequencyDeduplicationService extends AbstractDeduplicationService 
      */
     @Override
     public String deduplicationSingleKey(TaskInfo taskInfo, String receiver) {
-        return PREFIX + StrUtil.C_UNDERLINE
-                + receiver + StrUtil.C_UNDERLINE
-                + taskInfo.getMessageTemplateId() + StrUtil.C_UNDERLINE
+        return PREFIX + StrPool.C_UNDERLINE
+                + receiver + StrPool.C_UNDERLINE
                 + taskInfo.getSendChannel();
     }
 }

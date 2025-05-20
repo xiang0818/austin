@@ -1,8 +1,8 @@
 package com.java3y.austin.support.mq.eventbus;
 
 
+import com.java3y.austin.common.domain.RecallTaskInfo;
 import com.java3y.austin.common.domain.TaskInfo;
-import com.java3y.austin.support.domain.MessageTemplate;
 
 import java.util.List;
 
@@ -15,13 +15,15 @@ public interface EventBusListener {
 
     /**
      * 消费消息
+     *
      * @param lists
      */
     void consume(List<TaskInfo> lists);
 
     /**
      * 撤回消息
-     * @param messageTemplate
+     *
+     * @param recallTaskInfo
      */
-    void recall(MessageTemplate messageTemplate);
+    void recall(RecallTaskInfo recallTaskInfo);
 }

@@ -2,38 +2,20 @@ package com.java3y.austin.common.constant;
 
 
 /**
- * 基础的常量信息
+ * Austin常量信息
  *
  * @author 3y
  */
 public class AustinConstant {
-
-    /**
-     * boolean转换
-     */
-    public final static Integer TRUE = 1;
-    public final static Integer FALSE = 0;
-
-    /**
-     * cron时间格式
-     */
-    public final static String CRON_FORMAT = "ss mm HH dd MM ? yyyy-yyyy";
-
-
-    /**
-     * apollo默认的值
-     */
-    public final static String APOLLO_DEFAULT_VALUE_JSON_OBJECT = "{}";
-    public final static String APOLLO_DEFAULT_VALUE_JSON_ARRAY = "[]";
-
-
     /**
      * businessId默认的长度
      * 生成的逻辑：com.java3y.austin.support.utils.TaskInfoUtils#generateBusinessId(java.lang.Long, java.lang.Integer)
      */
-    public final static Integer BUSINESS_ID_LENGTH = 16;
-
-
+    public static final Integer BUSINESS_ID_LENGTH = 16;
+    /**
+     * 接口限制 最多的人数
+     */
+    public static final Integer BATCH_RECEIVER_SIZE = 100;
     /**
      * 消息发送给全部人的标识
      * (企业微信 应用消息)
@@ -41,25 +23,38 @@ public class AustinConstant {
      * (钉钉工作消息)
      */
     public static final String SEND_ALL = "@all";
-
-
     /**
-     * 加密算法
+     * 链路追踪缓存的key标识
      */
-    public static final String HMAC_SHA256_ENCRYPTION_ALGO = "HmacSHA256";
-
+    public static final String CACHE_KEY_PREFIX = "Austin";
+    public static final String MESSAGE_ID = "MessageId";
     /**
-     * 编码格式
+     * 消息模板常量；
+     * 如果新建模板/账号时，没传入则用该常量
      */
-    public static final String CHARSET_NAME = "UTF-8";
-
-
+    public static final String DEFAULT_CREATOR = "Java3y";
+    public static final String DEFAULT_UPDATOR = "Java3y";
+    public static final String DEFAULT_TEAM = "Java3y公众号";
+    public static final String DEFAULT_AUDITOR = "Java3y";
     /**
-     * HTTP 请求方法
+     * 项目打印常量
      */
-    public static final String REQUEST_METHOD_GET = "GET";
-    public static final String REQUEST_METHOD_POST = "POST";
+    public static final String PROJECT_NAME = " :: Austin :: ";
+    public static final String PROJECT_BANNER = "\n" +
+            " .----------------.  .----------------.  .----------------.  .----------------.  .----------------.  .-----------------.\n" +
+            "| .--------------. || .--------------. || .--------------. || .--------------. || .--------------. || .--------------. |\n" +
+            "| |      __      | || | _____  _____ | || |    _______   | || |  _________   | || |     _____    | || | ____  _____  | |\n" +
+            "| |     /  \\     | || ||_   _||_   _|| || |   /  ___  |  | || | |  _   _  |  | || |    |_   _|   | || ||_   \\|_   _| | |\n" +
+            "| |    / /\\ \\    | || |  | |    | |  | || |  |  (__ \\_|  | || | |_/ | | \\_|  | || |      | |     | || |  |   \\ | |   | |\n" +
+            "| |   / ____ \\   | || |  | '    ' |  | || |   '.___`-.   | || |     | |      | || |      | |     | || |  | |\\ \\| |   | |\n" +
+            "| | _/ /    \\ \\_ | || |   \\ `--' /   | || |  |`\\____) |  | || |    _| |_     | || |     _| |_    | || | _| |_\\   |_  | |\n" +
+            "| ||____|  |____|| || |    `.__.'    | || |  |_______.'  | || |   |_____|    | || |    |_____|   | || ||_____|\\____| | |\n" +
+            "| |              | || |              | || |              | || |              | || |              | || |              | |\n" +
+            "| '--------------' || '--------------' || '--------------' || '--------------' || '--------------' || '--------------' |\n" +
+            " '----------------'  '----------------'  '----------------'  '----------------'  '----------------'  '----------------' \n";
+    private AustinConstant() {
 
+    }
 
 
 }

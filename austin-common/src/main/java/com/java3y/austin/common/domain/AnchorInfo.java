@@ -9,6 +9,7 @@ import java.util.Set;
 
 /**
  * 埋点信息
+ *
  * @author 3y
  */
 @Data
@@ -16,7 +17,17 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AnchorInfo {
+    /**
+     * 消息唯一Id(数据追踪使用)
+     * 生成逻辑参考 TaskInfoUtils
+     */
+    private String bizId;
 
+    /**
+     * 消息唯一Id(数据追踪使用)
+     * 生成逻辑参考 TaskInfoUtils
+     */
+    private String messageId;
     /**
      * 发送用户
      */
@@ -24,6 +35,8 @@ public class AnchorInfo {
 
     /**
      * 具体点位
+     *
+     * @see com.java3y.austin.common.enums.AnchorState
      */
     private int state;
 
@@ -35,8 +48,8 @@ public class AnchorInfo {
 
 
     /**
-     * 生成时间
+     * 日志生成时间
      */
-    private long timestamp;
+    private long logTimestamp;
 
 }

@@ -1,7 +1,7 @@
 package com.java3y.austin.handler.deduplication.limit;
 
 import cn.hutool.core.collection.CollUtil;
-import com.java3y.austin.common.constant.AustinConstant;
+import com.java3y.austin.common.constant.CommonConstant;
 import com.java3y.austin.common.domain.TaskInfo;
 import com.java3y.austin.handler.deduplication.DeduplicationParam;
 import com.java3y.austin.handler.deduplication.service.AbstractDeduplicationService;
@@ -14,6 +14,8 @@ import java.util.stream.Collectors;
 
 /**
  * 采用普通的计数去重方法，限制的是每天发送的条数。
+ * 业务逻辑： 一天内相同的用户如果已经收到某渠道内容5次，则应该被过滤掉
+ * 技术方案：由pipeline set & mget实现
  * @author cao
  * @date 2022-04-20 13:41
  */
@@ -39,7 +41,7 @@ public class SimpleLimitService extends AbstractLimitService {
             String value = inRedisValue.get(key);
 
             // 符合条件的用户
-            if (value != null && Integer.parseInt(value) >= param.getCountNum()) {
+            if (Objects.nonNull(value) && Integer.parseInt(value) >= param.getCountNum()) {
                 filterReceiver.add(receiver);
             } else {
                 readyPutRedisReceiver.put(receiver, key);
@@ -59,14 +61,14 @@ public class SimpleLimitService extends AbstractLimitService {
      * @param readyPutRedisReceiver
      */
     private void putInRedis(Map<String, String> readyPutRedisReceiver,
-        Map<String, String> inRedisValue, Long deduplicationTime) {
+                            Map<String, String> inRedisValue, Long deduplicationTime) {
         Map<String, String> keyValues = new HashMap<>(readyPutRedisReceiver.size());
         for (Map.Entry<String, String> entry : readyPutRedisReceiver.entrySet()) {
             String key = entry.getValue();
-            if (inRedisValue.get(key) != null) {
-                keyValues.put(key, String.valueOf(Integer.valueOf(inRedisValue.get(key)) + 1));
+            if (Objects.nonNull(inRedisValue.get(key))) {
+                keyValues.put(key, String.valueOf(Integer.parseInt(inRedisValue.get(key)) + 1));
             } else {
-                keyValues.put(key, String.valueOf(AustinConstant.TRUE));
+                keyValues.put(key, String.valueOf(CommonConstant.TRUE));
             }
         }
         if (CollUtil.isNotEmpty(keyValues)) {

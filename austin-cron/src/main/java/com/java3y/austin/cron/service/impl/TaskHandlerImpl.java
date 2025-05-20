@@ -1,8 +1,8 @@
 package com.java3y.austin.cron.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.text.csv.CsvRow;
-import cn.hutool.core.util.StrUtil;
 import com.java3y.austin.cron.csv.CountFileRowHandler;
 import com.java3y.austin.cron.pending.CrowdBatchTaskPending;
 import com.java3y.austin.cron.service.TaskHandler;
@@ -16,7 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author 3y
@@ -35,8 +36,11 @@ public class TaskHandlerImpl implements TaskHandler {
     @Override
     public void handle(Long messageTemplateId) {
 
-        MessageTemplate messageTemplate = messageTemplateDao.findById(messageTemplateId).get();
-        if (StrUtil.isBlank(messageTemplate.getCronCrowdPath())) {
+        MessageTemplate messageTemplate = messageTemplateDao.findById(messageTemplateId).orElse(null);
+        if (Objects.isNull(messageTemplate)) {
+            return;
+        }
+        if (CharSequenceUtil.isBlank(messageTemplate.getCronCrowdPath())) {
             log.error("TaskHandler#handle crowdPath empty! messageTemplateId:{}", messageTemplateId);
             return;
         }
@@ -48,14 +52,14 @@ public class TaskHandlerImpl implements TaskHandler {
         CrowdBatchTaskPending crowdBatchTaskPending = context.getBean(CrowdBatchTaskPending.class);
         ReadFileUtils.getCsvRow(messageTemplate.getCronCrowdPath(), row -> {
             if (CollUtil.isEmpty(row.getFieldMap())
-                || StrUtil.isBlank(row.getFieldMap().get(ReadFileUtils.RECEIVER_KEY))) {
+                    || CharSequenceUtil.isBlank(row.getFieldMap().get(ReadFileUtils.RECEIVER_KEY))) {
                 return;
             }
 
             // 3. 每一行处理交给LazyPending
-            HashMap<String, String> params = ReadFileUtils.getParamFromLine(row.getFieldMap());
+            Map<String, String> params = ReadFileUtils.getParamFromLine(row.getFieldMap());
             CrowdInfoVo crowdInfoVo = CrowdInfoVo.builder().receiver(row.getFieldMap().get(ReadFileUtils.RECEIVER_KEY))
-                .params(params).messageTemplateId(messageTemplateId).build();
+                    .params(params).messageTemplateId(messageTemplateId).build();
             crowdBatchTaskPending.pending(crowdInfoVo);
 
             // 4. 判断是否读取文件完成回收资源且更改状态

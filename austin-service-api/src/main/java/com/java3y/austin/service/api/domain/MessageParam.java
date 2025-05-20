@@ -11,6 +11,7 @@ import java.util.Map;
 /**
  * 消息参数
  * single
+ *
  * @author 3y
  */
 @Data
@@ -19,6 +20,11 @@ import java.util.Map;
 @NoArgsConstructor
 @Builder
 public class MessageParam {
+
+    /**
+     * 业务消息发送Id, 用于链路追踪, 若不存在, austin 则生成一个消息Id
+     */
+    private String bizId;
 
     /**
      * @Description: 接收者
@@ -38,5 +44,5 @@ public class MessageParam {
      * @Description: 扩展参数
      * 可选
      */
-    private Map<String,String> extra;
+    private Map<String, String> extra;
 }
